@@ -19,6 +19,54 @@ COPTS = [
 LINK_OPTS = ["-lpthread"]
 
 cc_library(
+  name = "cc_proto",
+  visibility = ["//visibility:public"],
+  deps = [
+    ":protobuf",
+  ],
+)
+
+cc_library(
+  name = "proto_lib",
+  visibility = ["//visibility:public"],
+  deps = [
+    ":protobuf_lite",
+  ],
+)
+
+genrule(
+  name = "generate_java_descriptor_proto",
+  tools = [":protoc"],
+  srcs = [ "src/google/protobuf/descriptor.proto", ],
+  outs = [ "com/google/protobuf/DescriptorProtos.java" ],
+  cmd = "$(location :protoc) --java_out=$(GENDIR)/third_party/protobuf -Ithird_party/protobuf/src $<",
+)
+
+java_library(
+  name = "java_proto",
+  visibility = ["//visibility:public"],
+  srcs = glob([
+    "java/src/main/java/com/google/protobuf/*.java"
+  ]) + [
+      ":generate_java_descriptor_proto",
+  ]
+)
+
+genrule(
+  name = "generate_py_descriptor_proto",
+  srcs = [
+    ":protoc",
+    "src/google/protobuf/descriptor.proto",
+    "src/google/protobuf/compiler/plugin.proto",
+  ],
+  cmd = "$(location :protoc) --python_out=$(GENDIR)/third_party/protobuf/python -Ithird_party/protobuf/src $(location src/google/protobuf/descriptor.proto) $(location src/google/protobuf/compiler/plugin.proto)",
+  outs = [
+    "python/google/protobuf/descriptor_pb2.py",
+    "python/google/protobuf/compiler/plugin_pb2.py",
+  ],
+)
+
+cc_library(
     name = "protobuf_lite",
     srcs = [
         # AUTOGEN(protobuf_lite_srcs)

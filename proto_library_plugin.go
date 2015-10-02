@@ -38,30 +38,38 @@ func main() {
 
 	// Add "cc": {} section
 	cc_section := make(map[string]interface{})
-	cc_section["support_library"] = "//third-party/protobuf:cc_proto"
-	cc_section["translator_args"] = [1]string{"--cpp_out=$TRANSLATOR_OUTPUT"}
-	cc_source_suffixes := [1]string{".pb.cc"}
-	cc_header_suffixes := [1]string{".pb.h"}
-	cc_section["source_suffixes"] = cc_source_suffixes
-	cc_section["header_suffixes"] = cc_header_suffixes
+	if node["generate_rpc"] != nil {
+		cc_section["support_library"] = "//third_party/google/grpc:grpc++"
+		cc_section["translator_args"] = [3]string{"--cpp_out=$TRANSLATOR_OUTPUT",
+			"--grpc_out=$TRANSLATOR_OUTPUT",
+			"--plugin=protoc-gen-grpc=/home/luminate/pkg/grpc/grpc_cpp_plugin-20150908"}
+		cc_section["source_suffixes"] = [2]string{".pb.cc", ".grpc.pb.cc"}
+		cc_section["header_suffixes"] = [2]string{".pb.h", ".grpc.pb.h"}
+	} else {
+		cc_section["support_library"] = "//third_party/protobuf:cc_proto"
+		cc_section["translator_args"] = [1]string{"--cpp_out=$TRANSLATOR_OUTPUT"}
+		cc_section["source_suffixes"] = [1]string{".pb.cc"}
+		cc_section["header_suffixes"] = [1]string{".pb.h"}
+	}
+
 	node["cc"] = cc_section
 
 	// Add "java": {} section
 	// Users specifies java_classnames as in original proto_library.{h,cc}
 	java_section := make(map[string]interface{})
-	java_section["support_library"] = "//third-party/protobuf:java_proto"
+	java_section["support_library"] = "//third_party/protobuf:java_proto"
 	java_section["translator_args"] = [1]string{"--java_out=$TRANSLATOR_OUTPUT"}
 	node["java"] = java_section
 
 	// Add "py": {} section
 	py_section := make(map[string]interface{})
-	py_section["support_library"] = "//third-party/protobuf:py_proto"
+	py_section["support_library"] = "//third_party/protobuf:py_proto"
 	py_section["translator_args"] = [1]string{"--python_out=$TRANSLATOR_OUTPUT"}
 	node["py"] = py_section
 
 	// Add "go": {} section
 	go_section := make(map[string]interface{})
-	go_section["support_library"] = "//third-party/protobuf:go_proto"
+	go_section["support_library"] = "//third_party/protobuf:go_proto"
 	go_section["translator_args"] = [1]string{"--go_out=$TRANSLATOR_OUTPUT"}
 	node["go"] = go_section
 
